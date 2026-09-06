@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>9-Frame Layout with Centered Image</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+            gap: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+        }
+        
+        .frame {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .frame:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        #center-frame {
+            grid-column: 2 / 3;
+            grid-row: 2 / 3;
+        }
+        
+        .centered-image {
+            max-width: 10vw;
+            height: auto;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+        
+        .frame-content {
+            width: 100%;
+        }
+        
+        .frame-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .frame-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        a {
+            text-decoration: none;
+            color: #333;
+            display: block;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .frame-description {
+            font-size: 0.8rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top row frames -->
+    <div class="frame" id="frame-1">
+        <a href="your-page-1.html">
+            <div class="frame-content">
+                <div class="frame-icon">🏠</div>
+                <div class="frame-title">Home</div>
+                <div class="frame-description">Go to homepage</div>
+            </div>
+        </a>
+    </div>
+    
+    <div class="frame" id="frame-2">
+        <a href="your-page-2.html">
+            <div class="frame-content">
+                <div class="frame-icon">📊</div>
+                <div class="frame-title">Analytics</div>
+                <div class="frame-description">View statistics</div>
+            </div>
+        </a>
+    </div>
+    
+    <div class="frame" id="frame-3">
+        <a href="your-page-3.html">
+            <div class="frame-content">
+                <div class="frame-icon">📝</div>
+                <div class="frame-title">Blog</div>
+                <div class="frame-description">Read articles</div>
+            </div>
+        </a>
+    </div>
+    
+    <!-- Middle row frames -->
+    <div class="frame" id="frame-4">
+        <a href="your-page-4.html">
+            <div class="frame-content">
+                <div class="frame-icon">👤</div>
+                <div class="frame-title">Profile</div>
+                <div class="frame-description">Manage account</div>
+            </div>
+        </a>
+    </div>
+    
+    <!-- Center frame with image -->
+    <div class="frame" id="center-frame">
+        <img src="https://picsum.photos/seed/centerimage/800/800.jpg" alt="Center Image" class="centered-image">
+        <div class="frame-content">
+            <div class="frame-title">Center Piece</div>
+            <div class="frame-description">Main feature image</div>
+        </div>
+    </div>
+    
+    <div class="frame" id="frame-6">
+        <a href="your-page-6.html">
+            <div class="frame-content">
+                <div class="frame-icon">🔔</div>
+                <div class="frame-title">Notifications</div>
+                <div class="frame-description">View updates</div>
+            </div>
+        </a>
+    </div>
+    
+    <!-- Bottom row frames -->
+    <div class="frame" id="frame-7">
+        <a href="your-page-7.html">
+            <div class="frame-content">
+                <div class="frame-icon">⚙️</div>
+                <div class="frame-title">Settings</div>
+                <div class="frame-description">Configure app</div>
+            </div>
+        </a>
+    </div>
+    
+    <div class="frame" id="frame-8">
+        <a href="your-page-8.html">
+            <div class="frame-content">
+                <div class="frame-icon">❓</div>
+                <div class="frame-title">Help</div>
+                <div class="frame-description">Get support</div>
+            </div>
+        </a>
+    </div>
+    
+    <div class="frame" id="frame-9">
+        <a href="your-page-9.html">
+            <div class="frame-content">
+                <div class="frame-icon">📧</div>
+                <div class="frame-title">Contact</div>
+                <div class="frame-description">Get in touch</div>
+            </div>
+        </a>
+    </div>
+</body>
+</html>
