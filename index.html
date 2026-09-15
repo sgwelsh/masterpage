@@ -148,6 +148,38 @@
             const buttonContainer = document.getElementById('buttonContainer');
             const loadingMessage = document.getElementById('loadingMessage');
             
+            // Function to parse CSV line, handling quoted fields with commas
+            function parseCSVLine(line) {
+                const result = [];
+                let current = '';
+                let inQuotes = false;
+                
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    const nextChar = line[i+1];
+                    
+                    if (char === '"' && inQuotes && nextChar === '"') {
+                        // Escaped quote within quoted field
+                        current += '"';
+                        i++; // Skip the next quote
+                    } else if (char === '"') {
+                        // Start or end of quoted field
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        // Field separator
+                        result.push(current.trim());
+                        current = '';
+                    } else {
+                        // Regular character
+                        current += char;
+                    }
+                }
+                
+                // Add the last field
+                result.push(current.trim());
+                return result;
+            }
+            
             // Function to load buttons from CSV
             function loadButtonsFromCSV() {
                 // Try to load from local CSV first
@@ -182,19 +214,18 @@
                 // Parse CSV - each line has format: ButtonName,Hyperlink
                 const lines = csvData.split('\n');
                 
-                // Skip header row if present (first line might be headers)
-                const startIdx = lines[0].includes(',') ? 1 : 0;
-                
-                // Create buttons for each row
-                for (let i = startIdx; i < lines.length; i++) {
+                // Process ALL rows including the first one
+                for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if (!line) continue; // Skip empty lines
                     
-                    const parts = line.split(',');
+                    // Use the parseCSVLine function to handle commas in URLs
+                    const parts = parseCSVLine(line);
+                    
                     if (parts.length < 2) continue; // Skip malformed lines
                     
-                    const buttonName = parts[0].trim();
-                    const buttonLink = parts[1].trim();
+                    const buttonName = parts[0];
+                    const buttonLink = parts[1];
                     
                     // Check if it's a CSV page link (ends with .html) or external link
                     const isCSVLink = buttonLink.endsWith('.html');
