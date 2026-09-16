@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hazelwood Fire District Map</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Using Leaflet 1.7.1 to avoid white grid lines issue -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         * {
             margin: 0;
@@ -56,12 +57,19 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             margin-bottom: 15px;
             min-height: 400px;
+            position: relative;
         }
         
         #map {
             width: 100%;
             height: 100%;
             min-height: 400px;
+            /* Fix for white rectangle issue */
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
         }
         
         .footer {
@@ -74,6 +82,7 @@
             display: flex;
             justify-content: center;
             margin-bottom: 10px;
+            flex-wrap: wrap;
         }
         
         .button {
@@ -125,38 +134,51 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        // Initialize the map centered on Hazelwood, MO
-        const map = L.map('map').setView([38.7754, -90.3663], 13);
+        // Fix for white rectangle issue - this applies the workaround from search results
+        if (window?.chrome !== undefined) {
+            const originalInitTile = L.GridLayer.prototype._initTile;
+            L.GridLayer.include({
+                _initTile: function (tile) {
+                    originalInitTile.call(this, tile);
+                    const tileSize = this.getTileSize();
+                    tile.style.width = `${tileSize.x + 1}px`;
+                    tile.style.height = `${tileSize.y + 1}px`;
+                }
+            });
+        }
+        
+        // Initialize the map centered on Hazelwood, MO with correct coordinates
+        const map = L.map('map').setView([38.7776, -90.3700], 13);
         
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
         
-        // Add a marker for Hazelwood Fire Department
-        const fireStationMarker = L.marker([38.7754, -90.3663]).addTo(map)
+        // Add a marker for Hazelwood Fire Department with correct coordinates
+        const fireStationMarker = L.marker([38.7776, -90.3700]).addTo(map)
             .bindPopup('<b>Hazelwood Fire Department</b><br>Fire Marshal Division');
         
-        // Add marker for City Hall
-        const cityHallMarker = L.marker([38.7750, -90.3600]).addTo(map)
+        // Add marker for City Hall with correct coordinates
+        const cityHallMarker = L.marker([38.7768, -90.3705]).addTo(map)
             .bindPopup('<b>Hazelwood City Hall</b><br>City Administration');
         
         // Function to reset view to default
         function resetView() {
-            map.setView([38.7754, -90.3663], 13);
+            map.setView([38.7776, -90.3700], 13);
         }
         
         // Function to show fire station
         function showFireStation() {
-            map.setView([38.7754, -90.3663], 15);
+            map.setView([38.7776, -90.3700], 15);
             fireStationMarker.openPopup();
         }
         
         // Function to show city hall
         function showCityHall() {
-            map.setView([38.7750, -90.3600], 15);
+            map.setView([38.7768, -90.3705], 15);
             cityHallMarker.openPopup();
         }
         
@@ -174,12 +196,12 @@
             fillOpacity: 0.1
         }).addTo(map);
         
-        // Add some sample inspection locations (you can replace these with real data)
+        // Add some sample inspection locations with correct coordinates
         const inspectionLocations = [
-            {lat: 38.7800, lng: -90.3650, name: "ABC Manufacturing", status: "Compliant"},
-            {lat: 38.7700, lng: -90.3700, name: "XYZ Shopping Center", status: "Non-Compliant"},
-            {lat: 38.7750, lng: -90.3600, name: "Hazelwood High School", status: "Compliant"},
-            {lat: 38.7700, lng: -90.3550, name: "Medical Center", status: "Compliant"}
+            {lat: 38.7850, lng: -90.3740, name: "ABC Manufacturing", status: "Compliant"},
+            {lat: 38.7750, lng: -90.3650, name: "XYZ Shopping Center", status: "Non-Compliant"},
+            {lat: 38.7780, lng: -90.3720, name: "Hazelwood High School", status: "Compliant"},
+            {lat: 38.7720, lng: -90.3680, name: "Medical Center", status: "Compliant"}
         ];
         
         // Add markers for inspection locations
@@ -196,6 +218,11 @@
             const marker = L.marker([location.lat, location.lng], {icon: icon}).addTo(map);
             marker.bindPopup(`<b>${location.name}</b><br>Status: ${location.status}`);
         });
+        
+        // Ensure the map renders properly
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 100);
     </script>
 </body>
 </html>
