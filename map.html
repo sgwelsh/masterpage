@@ -165,25 +165,24 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         // Initialize the map centered on Hazelwood, MO 
-        const map = L.map('map').setView([38.787950, -90.374537], 16);
+        const map = L.map('map').setView([38.787950, -90.374537], 13);
         
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
         
-        // Correct coordinates based on your screenshot
-        // Fire Station 2: 6800 Howdershell Road, Hazelwood, MO
+        // Fire Station 2: 6800 Howdershell Road, Hazelwood, MO (based on your screenshot)
         const fireStationMarker = L.marker([38.787950, -90.374537]).addTo(map)
             .bindPopup('<b>Hazelwood Fire Station 2</b><br>6800 Howdershell Road');
         
-        // City Hall: 415 Elm Grove Lane, Hazelwood, MO
-        const cityHallMarker = L.marker([38.7769, -90.3701]).addTo(map)
+        // City Hall: 415 Elm Grove Lane, Hazelwood, MO (corrected coordinates)
+        const cityHallMarker = L.marker([38.78617, -90.35412]).addTo(map)
             .bindPopup('<b>City Hall</b><br>415 Elm Grove Lane');
         
         // Function to reset view to default
         function resetView() {
-            map.setView([38.787950, -90.374537], 16);
+            map.setView([38.787950, -90.374537], 13);
         }
         
         // Function to show fire station
@@ -195,7 +194,7 @@
         
         // Function to show city hall
         function showCityHall() {
-            map.setView([38.7769, -90.3701], 16);
+            map.setView([38.78617, -90.35412], 18);
             cityHallMarker.openPopup();
             updateStationInfo("City Hall", "415 Elm Grove Lane");
         }
@@ -209,7 +208,7 @@
         // Add sample inspection locations with corrected coordinates
         const inspectionLocations = [
             {lat: 38.787950, lng: -90.374537, name: "Fire Station 2", status: "Compliant"},
-            {lat: 38.7769, lng: -90.3701, name: "City Hall", status: "Compliant"},
+            {lat: 38.78617, lng: -90.35412, name: "City Hall", status: "Compliant"},
             {lat: 38.7850, lng: -90.3740, name: "Hazelwood Community Center", status: "Non-Compliant"}
         ];
         
@@ -238,7 +237,7 @@
         console.log("Fire Station coordinates: [38.787950, -90.374537]");
         console.log("Fire Station actual position: " + fireStationMarker.getLatLng());
         
-        console.log("City Hall coordinates: [38.7769, -90.3701]");
+        console.log("City Hall coordinates: [38.78617, -90.35412]");
         console.log("City Hall actual position: " + cityHallMarker.getLatLng());
         
         // Initial station info
