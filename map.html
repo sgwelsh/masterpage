@@ -198,12 +198,12 @@
         
         // GitHub configuration - replace with your values
         const githubConfig = {
-            username: sgwelsh, // Your GitHub username
-            repo: masterpage, // Your repository name
+            username: 'sgwelsh', // Your GitHub username
+            repo: 'masterpage', // Your repository name
             path: 'markers.json' // File path in the repo
         };
         
-        // GitHub API functions
+        // GitHub API functions'
         async function getFileSha(path) {
             const token = localStorage.getItem('githubToken');
             if (!token) return null;
