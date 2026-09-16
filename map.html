@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hazelwood Fire District Map</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <!-- No-caching headers -->
+    
+    <!-- Anti-Cache Code -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css?v=1">
     <style>
         * {
             margin: 0;
@@ -162,8 +164,21 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js?v=1"></script>
     <script>
+        // Anti-cache for map tiles
+        L.TileLayer.prototype._loadTile = function (tile, tilePoint) {
+            this._adjustTilePoint(tilePoint);
+            tile._layer = this;
+            tile._tilePoint = tilePoint;
+            this._tileBg.appendChild(tile);
+            this.fire('tileload', {tile: tile, url: this.getTileUrl(tilePoint)});
+            // Add timestamp to prevent caching
+            var url = this.getTileUrl(tilePoint);
+            url += (url.indexOf('?') === -1 ? '?' : '&') + 't=' + new Date().getTime();
+            this._tileImg.src = url;
+        };
+        
         // Initialize the map centered on Hazelwood, MO 
         const map = L.map('map').setView([38.787950, -90.374537], 13);
         
