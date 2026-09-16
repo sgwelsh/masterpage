@@ -158,7 +158,7 @@
         }).addTo(map);
         
         // Add a marker for Hazelwood Fire Department with correct coordinates
-        const fireStationMarker = L.marker([38.7776, -90.3700]).addTo(map)
+        const fireStationMarker = L.marker([-90.3700, 38.7776]).addTo(map)
             .bindPopup('<b>Hazelwood Fire Department</b><br>Fire Marshal Division');
         
         // Add marker for City Hall with correct coordinates
@@ -167,7 +167,7 @@
         
         // Function to reset view to default
         function resetView() {
-            map.setView([38.7776, -90.3700], 13);
+            map.setView([ -90.3700, 38.7776], 13);
         }
         
         // Function to show fire station
