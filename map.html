@@ -5,12 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hazelwood Fire District Map</title>
     
-    <!-- Enhanced Anti-Cache Code -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css?v=20230916">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     
     <style>
         * {
@@ -119,19 +114,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
-        .refresh-notice {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 1000;
-            background: rgba(255, 0, 0, 0.7);
-            color: white;
-            padding: 5px;
-            font-size: 12px;
-            border-radius: 5px;
-            display: none;
-        }
-        
         .instructions {
             position: absolute;
             bottom: 10px;
@@ -165,13 +147,11 @@
         <div class="controls">
             <button class="button" onclick="resetView()">Reset View</button>
             <button class="button" onclick="clearAllMarkers()">Clear All Markers</button>
-            <button class="button" onclick="forceRefresh()">Force Refresh</button>
         </div>
         
         <div class="map-container">
             <div id="map"></div>
             <div id="coordinates"></div>
-            <div id="refresh-notice">Page was refreshed to load latest content</div>
             <div id="instructions">
                 <strong>Instructions:</strong><br>
                 Click anywhere on the map to place a marker.<br>
@@ -184,43 +164,8 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        // Force page reload on first visit
-        (function() {
-            if (!sessionStorage.getItem('mapPageReloaded')) {
-                sessionStorage.setItem('mapPageReloaded', 'true');
-                document.getElementById('refresh-notice').style.display = 'block';
-                setTimeout(() => {
-                    document.getElementById('refresh-notice').style.display = 'none';
-                }, 3000);
-                location.reload(true);
-            }
-        })();
-        
-        // Add timestamp to all external scripts to prevent caching
-        document.addEventListener('DOMContentLoaded', function() {
-            var scripts = document.querySelectorAll('script[src]');
-            scripts.forEach(function(script) {
-                var url = new URL(script.src);
-                if (url.searchParams.has('v')) return;
-                url.searchParams.set('v', new Date().getTime());
-                script.src = url.toString();
-            });
-        });
-        
-        // Anti-cache for map tiles
-        L.TileLayer.prototype._loadTile = function (tile, tilePoint) {
-            this._adjustTilePoint(tilePoint);
-            tile._layer = this;
-            tile._tilePoint = tilePoint;
-            this._tileBg.appendChild(tile);
-            this.fire('tileload', {tile: tile, url: this.getTileUrl(tilePoint)});
-            // Add timestamp to prevent caching
-            var url = this.getTileUrl(tilePoint);
-            url += (url.indexOf('?') === -1 ? '?' : '&') + 't=' + new Date().getTime();
-            this._tileImg.src = url;
-        };
-        
         // Initialize the map centered on Hazelwood, MO 
         const map = L.map('map').setView([38.787950, -90.374537], 13);
         
@@ -318,12 +263,6 @@
             }
         }
         
-        // Function to force refresh
-        function forceRefresh() {
-            sessionStorage.removeItem('mapPageReloaded');
-            location.reload(true);
-        }
-        
         // Add coordinate display when clicking on the map
         map.on('click', function(e) {
             document.getElementById('coordinates').innerHTML = 
@@ -335,8 +274,5 @@
             map.invalidateSize();
         }, 100);
     </script>
-
-    <!-- Add timestamp to script to force reload -->
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js?v=20230916"></script>
 </body>
 </html>
