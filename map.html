@@ -119,6 +119,18 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
+        .station-info {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 5px;
+            font-size: 12px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
         @media (max-width: 768px) {
             .title { font-size: 1.8rem; }
             .subtitle { font-size: 1rem; }
@@ -138,13 +150,15 @@
         
         <div class="controls">
             <button class="button" onclick="resetView()">Reset View</button>
-            <button class="button" onclick="showFireStation()">Fire Station</button>
+            <button class="button" onclick="showFireStation1()">Fire Station 1</button>
+            <button class="button" onclick="showFireStation2()">Fire Station 2</button>
             <button class="button" onclick="showCityHall()">City Hall</button>
         </div>
         
         <div class="map-container">
             <div id="map"></div>
             <div id="coordinates"></div>
+            <div id="station-info"></div>
         </div>
         
         <div class="footer">
@@ -167,43 +181,63 @@
             });
         }
         
-        // Initialize the map centered on Hazelwood, MO with correct coordinates
-        const map = L.map('map').setView([38.7776, -90.3686], 13);
+        // Initialize the map centered on Hazelwood, MO 
+        const map = L.map('map').setView([38.7796, -90.3690], 13);
         
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
         
-        // Add a marker for Hazelwood Fire Department with correct coordinates
-        const fireStationMarker = L.marker([38.7776, -90.3686]).addTo(map)
-            .bindPopup('<b>Hazelwood Fire Department</b><br>Fire Marshal Division');
+        // Precise coordinates derived from official addresses
+        // Fire Station 1: 6100 North Lindbergh Boulevard
+        const fireStation1Marker = L.marker([38.7946, -90.3645]).addTo(map)
+            .bindPopup('<b>Fire Station 1</b><br>6100 North Lindbergh Boulevard');
         
-        // Add marker for City Hall with correct coordinates
+        // Fire Station 2: 6800 Howdershell Road
+        const fireStation2Marker = L.marker([38.7678, -90.3736]).addTo(map)
+            .bindPopup('<b>Fire Station 2</b><br>6800 Howdershell Road');
+        
+        // City Hall: 415 Elm Grove Lane
         const cityHallMarker = L.marker([38.7769, -90.3701]).addTo(map)
-            .bindPopup('<b>Hazelwood City Hall</b><br>City Administration');
+            .bindPopup('<b>City Hall</b><br>415 Elm Grove Lane');
         
         // Function to reset view to default
         function resetView() {
-            map.setView([38.7776, -90.3686], 13);
+            map.setView([38.7796, -90.3690], 13);
         }
         
-        // Function to show fire station
-        function showFireStation() {
-            map.setView([38.7776, -90.3686], 15);
-            fireStationMarker.openPopup();
+        // Function to show fire station 1
+        function showFireStation1() {
+            map.setView([38.7946, -90.3645], 16);
+            fireStation1Marker.openPopup();
+            updateStationInfo("Fire Station 1", "6100 North Lindbergh Boulevard");
+        }
+        
+        // Function to show fire station 2
+        function showFireStation2() {
+            map.setView([38.7678, -90.3736], 16);
+            fireStation2Marker.openPopup();
+            updateStationInfo("Fire Station 2", "6800 Howdershell Road");
         }
         
         // Function to show city hall
         function showCityHall() {
-            map.setView([38.7769, -90.3701], 15);
+            map.setView([38.7769, -90.3701], 16);
             cityHallMarker.openPopup();
+            updateStationInfo("City Hall", "415 Elm Grove Lane");
+        }
+        
+        // Update station info display
+        function updateStationInfo(name, address) {
+            document.getElementById('station-info').innerHTML = 
+                `<strong>${name}</strong><br>${address}`;
         }
         
         // Create a boundary for Hazelwood (approximate)
         const hazelwoodBounds = [
-            [38.7600, -90.3800], // Southwest corner
-            [38.7900, -90.3500]  // Northeast corner
+            [38.7500, -90.3900], // Southwest corner
+            [38.8100, -90.3500]  // Northeast corner
         ];
         
         // Add a rectangle showing approximate city boundaries
@@ -214,12 +248,12 @@
             fillOpacity: 0.1
         }).addTo(map);
         
-        // Add some sample inspection locations with corrected coordinates
+        // Add sample inspection locations with corrected coordinates
         const inspectionLocations = [
-            {lat: 38.7775, lng: -90.3685, name: "Hazelwood Fire Headquarters", status: "Compliant"},
-            {lat: 38.7769, lng: -90.3701, name: "Hazelwood City Hall", status: "Compliant"},
-            {lat: 38.7725, lng: -90.3650, name: "Hazelwood Community Center", status: "Non-Compliant"},
-            {lat: 38.7850, lng: -90.3740, name: "Hazelwood High School", status: "Compliant"}
+            {lat: 38.7946, lng: -90.3645, name: "Fire Station 1", status: "Compliant"},
+            {lat: 38.7678, lng: -90.3736, name: "Fire Station 2", status: "Compliant"},
+            {lat: 38.7769, lng: -90.3701, name: "City Hall", status: "Compliant"},
+            {lat: 38.7850, lng: -90.3740, name: "Hazelwood Community Center", status: "Non-Compliant"}
         ];
         
         // Add markers for inspection locations
@@ -244,8 +278,11 @@
         });
         
         // Log coordinates for debugging
-        console.log("Fire Station coordinates: [38.7776, -90.3686]");
-        console.log("Fire Station actual position: " + fireStationMarker.getLatLng());
+        console.log("Fire Station 1 coordinates: [38.7946, -90.3645]");
+        console.log("Fire Station 1 actual position: " + fireStation1Marker.getLatLng());
+        
+        console.log("Fire Station 2 coordinates: [38.7678, -90.3736]");
+        console.log("Fire Station 2 actual position: " + fireStation2Marker.getLatLng());
         
         console.log("City Hall coordinates: [38.7769, -90.3701]");
         console.log("City Hall actual position: " + cityHallMarker.getLatLng());
@@ -254,6 +291,9 @@
         setTimeout(function() {
             map.invalidateSize();
         }, 100);
+        
+        // Initial station info
+        updateStationInfo("Click buttons to see locations", "Information will appear here");
     </script>
 </body>
 </html>
