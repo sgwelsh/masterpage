@@ -147,8 +147,7 @@
         
         <div class="controls">
             <button class="button" onclick="resetView()">Reset View</button>
-            <button class="button" onclick="showFireStation1()">Fire Station 1</button>
-            <button class="button" onclick="showFireStation2()">Fire Station 2</button>
+            <button class="button" onclick="showFireStation()">Fire Station</button>
             <button class="button" onclick="showCityHall()">City Hall</button>
         </div>
         
@@ -165,50 +164,38 @@
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        // Initialize the map centered on Hazelwood, MO using accurate coordinates from search results
-        const map = L.map('map').setView([38.771440, -90.370949], 13);
+        // Initialize the map centered on Hazelwood, MO 
+        const map = L.map('map').setView([38.787950, -90.374537], 16);
         
-        // Add OpenStreetMap tiles with max zoom to improve accuracy
+        // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
         
-        // Updated coordinates using precise locations from search results
-        // Fire Station 1: 6100 North Lindbergh Boulevard, Hazelwood, MO
-        const fireStation1Marker = L.marker([38.7946, -90.3645]).addTo(map)
-            .bindPopup('<b>Fire Station 1</b><br>6100 North Lindbergh Boulevard');
-        
+        // Correct coordinates based on your screenshot
         // Fire Station 2: 6800 Howdershell Road, Hazelwood, MO
-        const fireStation2Marker = L.marker([38.7678, -90.3736]).addTo(map)
-            .bindPopup('<b>Fire Station 2</b><br>6800 Howdershell Road');
+        const fireStationMarker = L.marker([38.787950, -90.374537]).addTo(map)
+            .bindPopup('<b>Hazelwood Fire Station 2</b><br>6800 Howdershell Road');
         
-        // City Hall: 415 Elm Grove Lane (approximate)
-        const cityHallMarker = L.marker([38.7714, -90.3701]).addTo(map)
+        // City Hall: 415 Elm Grove Lane, Hazelwood, MO
+        const cityHallMarker = L.marker([38.7769, -90.3701]).addTo(map)
             .bindPopup('<b>City Hall</b><br>415 Elm Grove Lane');
         
         // Function to reset view to default
         function resetView() {
-            map.setView([38.771440, -90.370949], 13);
+            map.setView([38.787950, -90.374537], 16);
         }
         
-        // Function to show fire station 1
-        function showFireStation1() {
-            map.setView([38.7946, -90.3645], 16);
-            fireStation1Marker.openPopup();
-            updateStationInfo("Fire Station 1", "6100 North Lindbergh Boulevard");
-        }
-        
-        // Function to show fire station 2
-        function showFireStation2() {
-            map.setView([38.7678, -90.3736], 16);
-            fireStation2Marker.openPopup();
+        // Function to show fire station
+        function showFireStation() {
+            map.setView([38.787950, -90.374537], 18);
+            fireStationMarker.openPopup();
             updateStationInfo("Fire Station 2", "6800 Howdershell Road");
         }
         
         // Function to show city hall
         function showCityHall() {
-            map.setView([38.7714, -90.3701], 16);
+            map.setView([38.7769, -90.3701], 16);
             cityHallMarker.openPopup();
             updateStationInfo("City Hall", "415 Elm Grove Lane");
         }
@@ -219,25 +206,10 @@
                 `<strong>${name}</strong><br>${address}`;
         }
         
-        // Add a boundary for Hazelwood
-        const hazelwoodBounds = [
-            [38.7500, -90.3900], 
-            [38.8100, -90.3500]
-        ];
-        
-        // Add a rectangle showing approximate city boundaries
-        L.rectangle(hazelwoodBounds, {
-            color: "#b21f1f",
-            weight: 2,
-            opacity: 0.5,
-            fillOpacity: 0.1
-        }).addTo(map);
-        
         // Add sample inspection locations with corrected coordinates
         const inspectionLocations = [
-            {lat: 38.7946, lng: -90.3645, name: "Fire Station 1", status: "Compliant"},
-            {lat: 38.7678, lng: -90.3736, name: "Fire Station 2", status: "Compliant"},
-            {lat: 38.7714, lng: -90.3701, name: "City Hall", status: "Compliant"},
+            {lat: 38.787950, lng: -90.374537, name: "Fire Station 2", status: "Compliant"},
+            {lat: 38.7769, lng: -90.3701, name: "City Hall", status: "Compliant"},
             {lat: 38.7850, lng: -90.3740, name: "Hazelwood Community Center", status: "Non-Compliant"}
         ];
         
@@ -263,14 +235,10 @@
         });
         
         // Log coordinates for debugging
-        console.log("Hazelwood center coordinates: [38.771440, -90.370949]");
-        console.log("Fire Station 1 coordinates: [38.7946, -90.3645]");
-        console.log("Fire Station 1 actual position: " + fireStation1Marker.getLatLng());
+        console.log("Fire Station coordinates: [38.787950, -90.374537]");
+        console.log("Fire Station actual position: " + fireStationMarker.getLatLng());
         
-        console.log("Fire Station 2 coordinates: [38.7678, -90.3736]");
-        console.log("Fire Station 2 actual position: " + fireStation2Marker.getLatLng());
-        
-        console.log("City Hall coordinates: [38.7714, -90.3701]");
+        console.log("City Hall coordinates: [38.7769, -90.3701]");
         console.log("City Hall actual position: " + cityHallMarker.getLatLng());
         
         // Initial station info
