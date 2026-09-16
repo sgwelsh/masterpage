@@ -140,8 +140,8 @@
             display: none;
         }
         
-        /* Custom popup style for hover */
-        .custom-popup {
+        /* Custom tooltip style */
+        .custom-tooltip {
             background: rgba(255, 255, 255, 0.95);
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -320,22 +320,7 @@
             localStorage.setItem('mapCustomMarkers', JSON.stringify(customMarkers));
         }
         
-        // Custom tooltip that appears on hover
-        function createHoverTooltip(markerData) {
-            const popup = L.popup({
-                className: 'custom-popup',
-                closeButton: false,
-                closeOnClick: false,
-                autoClose: false,
-                closeOnEscapeKey: false,
-                maxWidth: 200
-            })
-            .setLatLng([markerData.lat, markerData.lng])
-            .setContent(`<b>${markerData.name}</b><br>${markerData.description || ''}`);
-            
-            return popup;
-        }
-        
+        // Function to add markers to the map
         function addMarkersToMap() {
             // Clear existing markers from map
             map.eachLayer(function(layer) {
@@ -349,18 +334,15 @@
                 const marker = L.marker([markerData.lat, markerData.lng]).addTo(map);
                 
                 // Create hover tooltip for this marker
-                const tooltip = createHoverTooltip(markerData);
-                
-                // Show tooltip on mouse over
-                marker.on('mouseover', function(e) {
-                    tooltip.setLatLng(e.latlng);
-                    tooltip.openOn(map);
+                const tooltip = L.tooltip({
+                    className: 'custom-tooltip',
+                    permanent: false,
+                    direction: 'top',
+                    offset: [0, -10]
                 });
                 
-                // Hide tooltip on mouse out
-                marker.on('mouseout', function() {
-                    tooltip.close();
-                });
+                tooltip.setContent(`<b>${markerData.name}</b><br>${markerData.description || ''}`);
+                marker.bindTooltip(tooltip);
                 
                 // Click to delete functionality
                 marker.on('click', function() {
