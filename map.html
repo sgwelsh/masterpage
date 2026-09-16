@@ -140,16 +140,18 @@
             display: none;
         }
         
-        /* Custom tooltip style */
-        .custom-tooltip {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 5px;
-            font-size: 12px;
-            max-width: 200px;
-            z-index: 1001;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        /* Fix tooltip overflow issues */
+        .leaflet-tooltip {
+            max-width: 200px !important;
+            word-wrap: break-word !important;
+            white-space: normal !important;
+            overflow: hidden !important;
+            padding: 5px !important;
+        }
+        
+        .leaflet-tooltip-content {
+            max-width: 200px !important;
+            word-wrap: break-word !important;
         }
         
         @media (max-width: 768px) {
@@ -334,15 +336,16 @@
                 const marker = L.marker([markerData.lat, markerData.lng]).addTo(map);
                 
                 // Create hover tooltip for this marker
-                const tooltip = L.tooltip({
+                const tooltipText = `<strong>${markerData.name}</strong><br>${markerData.description || ''}`;
+                
+                // Add tooltip with proper styling
+                marker.bindTooltip(tooltipText, {
                     className: 'custom-tooltip',
                     permanent: false,
                     direction: 'top',
-                    offset: [0, -10]
+                    offset: [0, -10],
+                    sticky: true
                 });
-                
-                tooltip.setContent(`<b>${markerData.name}</b><br>${markerData.description || ''}`);
-                marker.bindTooltip(tooltip);
                 
                 // Click to delete functionality
                 marker.on('click', function() {
