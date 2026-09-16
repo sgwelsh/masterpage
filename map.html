@@ -127,6 +127,19 @@
             max-width: 300px;
         }
         
+        .token-input {
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 5px;
+            font-size: 12px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: none;
+        }
+        
         @media (max-width: 768px) {
             .title { font-size: 1.8rem; }
             .subtitle { font-size: 1rem; }
@@ -147,6 +160,7 @@
         <div class="controls">
             <button class="button" onclick="resetView()">Reset View</button>
             <button class="button" onclick="clearAllMarkers()">Clear All Markers</button>
+            <button class="button" onclick="showTokenInput()">Set GitHub Token</button>
         </div>
         
         <div class="map-container">
@@ -155,7 +169,12 @@
             <div id="instructions">
                 <strong>Instructions:</strong><br>
                 Click anywhere on the map to place a marker.<br>
-                Click on a marker to delete it.
+                Click on a marker to delete it.<br>
+                Set your GitHub token to sync between devices.
+            </div>
+            <div id="token-input" class="token-input">
+                <input type="password" id="token-field" placeholder="GitHub Token" style="width:200px;margin-right:5px;">
+                <button class="button" onclick="saveToken()">Save</button>
             </div>
         </div>
         
@@ -177,30 +196,139 @@
         // Array to store custom markers
         let customMarkers = [];
         
-        // Load saved markers from localStorage when page loads
-        function loadSavedMarkers() {
-            const savedMarkers = localStorage.getItem('mapCustomMarkers');
-            if (savedMarkers) {
-                customMarkers = JSON.parse(savedMarkers);
-                customMarkers.forEach(markerData => {
-                    const marker = L.marker([markerData.lat, markerData.lng]).addTo(map);
-                    marker.bindPopup(`<b>${markerData.name}</b><br>${markerData.description || ''}`);
-                    marker.on('click', function() {
-                        if (confirm('Delete this marker?')) {
-                            map.removeLayer(marker);
-                            const index = customMarkers.findIndex(m => 
-                                m.lat === markerData.lat && m.lng === markerData.lng);
-                            if (index > -1) customMarkers.splice(index, 1);
-                            saveMarkers();
-                        }
-                    });
+        // GitHub configuration - replace with your values
+        const githubConfig = {
+            username: sgwelsh, // Your GitHub username
+            repo: masterpage, // Your repository name
+            path: 'markers.json' // File path in the repo
+        };
+        
+        // GitHub API functions
+        async function getFileSha(path) {
+            const token = localStorage.getItem('githubToken');
+            if (!token) return null;
+            
+            try {
+                const response = await fetch(`https://api.github.com/repos/${githubConfig.username}/${githubConfig.repo}/contents/${path}`, {
+                    headers: {
+                        'Authorization': `token ${token}`
+                    }
                 });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.sha;
+                }
+                return null;
+            } catch (error) {
+                console.error('Error getting file SHA:', error);
+                return null;
             }
         }
         
-        // Save markers to localStorage
-        function saveMarkers() {
+        async function loadMarkersFromGitHub() {
+            const token = localStorage.getItem('githubToken');
+            if (!token) {
+                console.log('No GitHub token found, using localStorage');
+                loadMarkersFromStorage();
+                return;
+            }
+            
+            try {
+                const response = await fetch(`https://api.github.com/repos/${githubConfig.username}/${githubConfig.repo}/contents/${githubConfig.path}`, {
+                    headers: {
+                        'Authorization': `token ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    customMarkers = JSON.parse(atob(data.content));
+                    addMarkersToMap();
+                    console.log('Markers loaded from GitHub');
+                } else {
+                    console.log('File not found, creating new markers file');
+                    loadMarkersFromStorage();
+                    saveMarkersToGitHub();
+                }
+            } catch (error) {
+                console.error('Error loading markers from GitHub:', error);
+                loadMarkersFromStorage();
+            }
+        }
+        
+        async function saveMarkersToGitHub() {
+            const token = localStorage.getItem('githubToken');
+            if (!token) {
+                console.log('No GitHub token, saving to localStorage');
+                saveMarkersToStorage();
+                return;
+            }
+            
+            try {
+                const content = btoa(JSON.stringify(customMarkers));
+                const sha = await getFileSha(githubConfig.path);
+                
+                const response = await fetch(`https://api.github.com/repos/${githubConfig.username}/${githubConfig.repo}/contents/${githubConfig.path}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: 'Update markers',
+                        content: content,
+                        sha: sha
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log('Markers saved to GitHub');
+                } else {
+                    console.error('Failed to save markers to GitHub');
+                    saveMarkersToStorage();
+                }
+            } catch (error) {
+                console.error('Error saving markers to GitHub:', error);
+                saveMarkersToStorage();
+            }
+        }
+        
+        // Fallback localStorage functions
+        function loadMarkersFromStorage() {
+            const savedMarkers = localStorage.getItem('mapCustomMarkers');
+            if (savedMarkers) {
+                customMarkers = JSON.parse(savedMarkers);
+                addMarkersToMap();
+            }
+        }
+        
+        function saveMarkersToStorage() {
             localStorage.setItem('mapCustomMarkers', JSON.stringify(customMarkers));
+        }
+        
+        function addMarkersToMap() {
+            // Clear existing markers from map
+            map.eachLayer(function(layer) {
+                if (layer instanceof L.Marker) {
+                    map.removeLayer(layer);
+                }
+            });
+            
+            // Add all markers from data
+            customMarkers.forEach(markerData => {
+                const marker = L.marker([markerData.lat, markerData.lng]).addTo(map);
+                marker.bindPopup(`<b>${markerData.name}</b><br>${markerData.description || ''}`);
+                marker.on('click', function() {
+                    if (confirm('Delete this marker?')) {
+                        map.removeLayer(marker);
+                        const index = customMarkers.findIndex(m => 
+                            m.lat === markerData.lat && m.lng === markerData.lng);
+                        if (index > -1) customMarkers.splice(index, 1);
+                        saveMarkersToGitHub();
+                    }
+                });
+            });
         }
         
         // Add click event to map
@@ -214,10 +342,6 @@
             
             const description = prompt('Enter a description (optional):');
             
-            // Create the marker
-            const marker = L.marker([lat, lng]).addTo(map);
-            marker.bindPopup(`<b>${name}</b><br>${description || ''}`);
-            
             // Add to markers array
             customMarkers.push({
                 lat: lat,
@@ -226,23 +350,15 @@
                 description: description
             });
             
-            // Save to localStorage
-            saveMarkers();
+            // Save to GitHub
+            saveMarkersToGitHub();
             
-            // Add click event to marker for deletion
-            marker.on('click', function() {
-                if (confirm('Delete this marker?')) {
-                    map.removeLayer(marker);
-                    const index = customMarkers.findIndex(m => 
-                        m.lat === lat && m.lng === lng);
-                    if (index > -1) customMarkers.splice(index, 1);
-                    saveMarkers();
-                }
-            });
+            // Refresh map markers
+            addMarkersToMap();
         });
         
-        // Load saved markers when page initializes
-        loadSavedMarkers();
+        // Load markers when page initializes
+        loadMarkersFromGitHub();
         
         // Function to reset view to default
         function resetView() {
@@ -253,13 +369,27 @@
         function clearAllMarkers() {
             if (confirm('Clear all markers? This cannot be undone.')) {
                 customMarkers = [];
-                saveMarkers();
-                // Remove all marker layers from map
-                map.eachLayer(function(layer) {
-                    if (layer instanceof L.Marker) {
-                        map.removeLayer(layer);
-                    }
-                });
+                saveMarkersToGitHub();
+                addMarkersToMap();
+            }
+        }
+        
+        // Token input functions
+        function showTokenInput() {
+            document.getElementById('token-input').style.display = 'block';
+            const token = localStorage.getItem('githubToken');
+            if (token) {
+                document.getElementById('token-field').value = token;
+            }
+        }
+        
+        function saveToken() {
+            const token = document.getElementById('token-field').value;
+            if (token) {
+                localStorage.setItem('githubToken', token);
+                document.getElementById('token-input').style.display = 'none';
+                alert('Token saved. Reloading markers from GitHub...');
+                loadMarkersFromGitHub();
             }
         }
         
