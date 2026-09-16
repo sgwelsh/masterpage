@@ -140,6 +140,18 @@
             display: none;
         }
         
+        /* Custom popup style for hover */
+        .custom-popup {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 5px;
+            font-size: 12px;
+            max-width: 200px;
+            z-index: 1001;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
         @media (max-width: 768px) {
             .title { font-size: 1.8rem; }
             .subtitle { font-size: 1rem; }
@@ -169,6 +181,7 @@
             <div id="instructions">
                 <strong>Instructions:</strong><br>
                 Click anywhere on the map to place a marker.<br>
+                Hover over a marker to see its details.<br>
                 Click on a marker to delete it.<br>
                 Set your GitHub token to sync between devices.
             </div>
@@ -203,7 +216,7 @@
             path: 'markers.json' // File path in the repo
         };
         
-        // GitHub API functions'
+        // GitHub API functions
         async function getFileSha(path) {
             const token = localStorage.getItem('githubToken');
             if (!token) return null;
@@ -307,6 +320,22 @@
             localStorage.setItem('mapCustomMarkers', JSON.stringify(customMarkers));
         }
         
+        // Custom tooltip that appears on hover
+        function createHoverTooltip(markerData) {
+            const popup = L.popup({
+                className: 'custom-popup',
+                closeButton: false,
+                closeOnClick: false,
+                autoClose: false,
+                closeOnEscapeKey: false,
+                maxWidth: 200
+            })
+            .setLatLng([markerData.lat, markerData.lng])
+            .setContent(`<b>${markerData.name}</b><br>${markerData.description || ''}`);
+            
+            return popup;
+        }
+        
         function addMarkersToMap() {
             // Clear existing markers from map
             map.eachLayer(function(layer) {
@@ -318,7 +347,22 @@
             // Add all markers from data
             customMarkers.forEach(markerData => {
                 const marker = L.marker([markerData.lat, markerData.lng]).addTo(map);
-                marker.bindPopup(`<b>${markerData.name}</b><br>${markerData.description || ''}`);
+                
+                // Create hover tooltip for this marker
+                const tooltip = createHoverTooltip(markerData);
+                
+                // Show tooltip on mouse over
+                marker.on('mouseover', function(e) {
+                    tooltip.setLatLng(e.latlng);
+                    tooltip.openOn(map);
+                });
+                
+                // Hide tooltip on mouse out
+                marker.on('mouseout', function() {
+                    tooltip.close();
+                });
+                
+                // Click to delete functionality
                 marker.on('click', function() {
                     if (confirm('Delete this marker?')) {
                         map.removeLayer(marker);
