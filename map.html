@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hazelwood Fire District Map</title>
     
-    <!-- Anti-Cache Code -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <!-- Enhanced Anti-Cache Code -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css?v=1">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css?v=20230916">
+    
     <style>
         * {
             margin: 0;
@@ -118,16 +119,30 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
-        .station-info {
+        .refresh-notice {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: rgba(255, 0, 0, 0.7);
+            color: white;
+            padding: 5px;
+            font-size: 12px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .instructions {
             position: absolute;
             bottom: 10px;
             left: 10px;
             z-index: 1000;
-            background: white;
-            padding: 5px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px;
             font-size: 12px;
             border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            max-width: 300px;
         }
         
         @media (max-width: 768px) {
@@ -149,14 +164,19 @@
         
         <div class="controls">
             <button class="button" onclick="resetView()">Reset View</button>
-            <button class="button" onclick="showFireStation()">Fire Station</button>
-            <button class="button" onclick="showCityHall()">City Hall</button>
+            <button class="button" onclick="clearAllMarkers()">Clear All Markers</button>
+            <button class="button" onclick="forceRefresh()">Force Refresh</button>
         </div>
         
         <div class="map-container">
             <div id="map"></div>
             <div id="coordinates"></div>
-            <div id="station-info"></div>
+            <div id="refresh-notice">Page was refreshed to load latest content</div>
+            <div id="instructions">
+                <strong>Instructions:</strong><br>
+                Click anywhere on the map to place a marker.<br>
+                Click on a marker to delete it.
+            </div>
         </div>
         
         <div class="footer">
@@ -164,8 +184,30 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js?v=1"></script>
     <script>
+        // Force page reload on first visit
+        (function() {
+            if (!sessionStorage.getItem('mapPageReloaded')) {
+                sessionStorage.setItem('mapPageReloaded', 'true');
+                document.getElementById('refresh-notice').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('refresh-notice').style.display = 'none';
+                }, 3000);
+                location.reload(true);
+            }
+        })();
+        
+        // Add timestamp to all external scripts to prevent caching
+        document.addEventListener('DOMContentLoaded', function() {
+            var scripts = document.querySelectorAll('script[src]');
+            scripts.forEach(function(script) {
+                var url = new URL(script.src);
+                if (url.searchParams.has('v')) return;
+                url.searchParams.set('v', new Date().getTime());
+                script.src = url.toString();
+            });
+        });
+        
         // Anti-cache for map tiles
         L.TileLayer.prototype._loadTile = function (tile, tilePoint) {
             this._adjustTilePoint(tilePoint);
@@ -187,60 +229,100 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
         
-        // Fire Station 2: 6800 Howdershell Road, Hazelwood, MO (based on your screenshot)
-        const fireStationMarker = L.marker([38.787950, -90.374537]).addTo(map)
-            .bindPopup('<b>Hazelwood Fire Station 2</b><br>6800 Howdershell Road');
+        // Array to store custom markers
+        let customMarkers = [];
         
-        // City Hall: 415 Elm Grove Lane, Hazelwood, MO (corrected coordinates)
-        const cityHallMarker = L.marker([38.78617, -90.35412]).addTo(map)
-            .bindPopup('<b>City Hall</b><br>415 Elm Grove Lane');
+        // Load saved markers from localStorage when page loads
+        function loadSavedMarkers() {
+            const savedMarkers = localStorage.getItem('mapCustomMarkers');
+            if (savedMarkers) {
+                customMarkers = JSON.parse(savedMarkers);
+                customMarkers.forEach(markerData => {
+                    const marker = L.marker([markerData.lat, markerData.lng]).addTo(map);
+                    marker.bindPopup(`<b>${markerData.name}</b><br>${markerData.description || ''}`);
+                    marker.on('click', function() {
+                        if (confirm('Delete this marker?')) {
+                            map.removeLayer(marker);
+                            const index = customMarkers.findIndex(m => 
+                                m.lat === markerData.lat && m.lng === markerData.lng);
+                            if (index > -1) customMarkers.splice(index, 1);
+                            saveMarkers();
+                        }
+                    });
+                });
+            }
+        }
+        
+        // Save markers to localStorage
+        function saveMarkers() {
+            localStorage.setItem('mapCustomMarkers', JSON.stringify(customMarkers));
+        }
+        
+        // Add click event to map
+        map.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            
+            // Prompt for marker details
+            const name = prompt('Enter a name for this location:');
+            if (!name) return;
+            
+            const description = prompt('Enter a description (optional):');
+            
+            // Create the marker
+            const marker = L.marker([lat, lng]).addTo(map);
+            marker.bindPopup(`<b>${name}</b><br>${description || ''}`);
+            
+            // Add to markers array
+            customMarkers.push({
+                lat: lat,
+                lng: lng,
+                name: name,
+                description: description
+            });
+            
+            // Save to localStorage
+            saveMarkers();
+            
+            // Add click event to marker for deletion
+            marker.on('click', function() {
+                if (confirm('Delete this marker?')) {
+                    map.removeLayer(marker);
+                    const index = customMarkers.findIndex(m => 
+                        m.lat === lat && m.lng === lng);
+                    if (index > -1) customMarkers.splice(index, 1);
+                    saveMarkers();
+                }
+            });
+        });
+        
+        // Load saved markers when page initializes
+        loadSavedMarkers();
         
         // Function to reset view to default
         function resetView() {
             map.setView([38.787950, -90.374537], 13);
         }
         
-        // Function to show fire station
-        function showFireStation() {
-            map.setView([38.787950, -90.374537], 18);
-            fireStationMarker.openPopup();
-            updateStationInfo("Fire Station 2", "6800 Howdershell Road");
+        // Function to clear all markers
+        function clearAllMarkers() {
+            if (confirm('Clear all markers? This cannot be undone.')) {
+                customMarkers = [];
+                saveMarkers();
+                // Remove all marker layers from map
+                map.eachLayer(function(layer) {
+                    if (layer instanceof L.Marker) {
+                        map.removeLayer(layer);
+                    }
+                });
+            }
         }
         
-        // Function to show city hall
-        function showCityHall() {
-            map.setView([38.78617, -90.35412], 18);
-            cityHallMarker.openPopup();
-            updateStationInfo("City Hall", "415 Elm Grove Lane");
+        // Function to force refresh
+        function forceRefresh() {
+            sessionStorage.removeItem('mapPageReloaded');
+            location.reload(true);
         }
-        
-        // Update station info display
-        function updateStationInfo(name, address) {
-            document.getElementById('station-info').innerHTML = 
-                `<strong>${name}</strong><br>${address}`;
-        }
-        
-        // Add sample inspection locations with corrected coordinates
-        const inspectionLocations = [
-            {lat: 38.787950, lng: -90.374537, name: "Fire Station 2", status: "Compliant"},
-            {lat: 38.78617, lng: -90.35412, name: "City Hall", status: "Compliant"},
-            {lat: 38.7850, lng: -90.3740, name: "Hazelwood Community Center", status: "Non-Compliant"}
-        ];
-        
-        // Add markers for inspection locations
-        inspectionLocations.forEach(location => {
-            const markerColor = location.status === "Compliant" ? "green" : "red";
-            
-            const icon = L.divIcon({
-                className: 'custom-div-icon',
-                html: `<div style="background-color: ${markerColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
-                iconSize: [12, 12],
-                iconAnchor: [6, 6]
-            });
-            
-            const marker = L.marker([location.lat, location.lng], {icon: icon}).addTo(map);
-            marker.bindPopup(`<b>${location.name}</b><br>Status: ${location.status}`);
-        });
         
         // Add coordinate display when clicking on the map
         map.on('click', function(e) {
@@ -248,15 +330,13 @@
                 "Lat: " + e.latlng.lat.toFixed(6) + "<br>Lng: " + e.latlng.lng.toFixed(6);
         });
         
-        // Log coordinates for debugging
-        console.log("Fire Station coordinates: [38.787950, -90.374537]");
-        console.log("Fire Station actual position: " + fireStationMarker.getLatLng());
-        
-        console.log("City Hall coordinates: [38.78617, -90.35412]");
-        console.log("City Hall actual position: " + cityHallMarker.getLatLng());
-        
-        // Initial station info
-        updateStationInfo("Click buttons to see locations", "Information will appear here");
+        // Force map reload on first load
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 100);
     </script>
+
+    <!-- Add timestamp to script to force reload -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js?v=20230916"></script>
 </body>
 </html>
