@@ -135,9 +135,9 @@
         
         <div class="map-container">
             <div class="iframe-container">
-                <!-- GeoLibre iframe with default view centered on Hazelwood, MO -->
+                <!-- GeoLibre iframe with parameters for Hazelwood, MO -->
                 <iframe 
-                    src="https://web.geolibre.app/#lat=38.787950&lng=-90.374537&zoom=13"
+                    src="https://web.geolibre.app/?view=38.787950,-90.374537,13"
                     title="Hazelwood Fire District Map"
                 ></iframe>
             </div>
@@ -165,12 +165,12 @@
         // Reset view to Hazelwood, MO
         function resetView() {
             const iframe = document.querySelector('iframe');
-            iframe.src = "https://web.geolibre.app/#lat=38.787950&lng=-90.374537&zoom=13";
+            iframe.src = "https://web.geolibre.app/?view=38.787950,-90.374537,13";
         }
         
         // Open GeoLibre in a new tab
         function openInNewTab() {
-            window.open("https://web.geolibre.app/#lat=38.787950&lng=-90.374537&zoom=13", "_blank");
+            window.open("https://web.geolibre.app/?view=38.787950,-90.374537,13", "_blank");
         }
     </script>
 </body>
