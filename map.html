@@ -6,6 +6,10 @@
     <title>Hazelwood Fire District Map</title>
     <!-- Using Leaflet 1.7.1 to avoid white grid lines issue -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <!-- No-caching headers -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <style>
         * {
             margin: 0;
@@ -102,6 +106,19 @@
             color: white;
         }
         
+        /* Coordinate display style */
+        #coordinates {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 5px;
+            font-size: 12px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
         @media (max-width: 768px) {
             .title { font-size: 1.8rem; }
             .subtitle { font-size: 1rem; }
@@ -127,6 +144,7 @@
         
         <div class="map-container">
             <div id="map"></div>
+            <div id="coordinates"></div>
         </div>
         
         <div class="footer">
@@ -150,7 +168,7 @@
         }
         
         // Initialize the map centered on Hazelwood, MO with correct coordinates
-        const map = L.map('map').setView([38.7776, -90.3700], 13);
+        const map = L.map('map').setView([38.7776, -90.3686], 13);
         
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -158,27 +176,27 @@
         }).addTo(map);
         
         // Add a marker for Hazelwood Fire Department with correct coordinates
-        const fireStationMarker = L.marker([-90.3700, 38.7776]).addTo(map)
+        const fireStationMarker = L.marker([38.7776, -90.3686]).addTo(map)
             .bindPopup('<b>Hazelwood Fire Department</b><br>Fire Marshal Division');
         
         // Add marker for City Hall with correct coordinates
-        const cityHallMarker = L.marker([38.7768, -90.3705]).addTo(map)
+        const cityHallMarker = L.marker([38.7769, -90.3701]).addTo(map)
             .bindPopup('<b>Hazelwood City Hall</b><br>City Administration');
         
         // Function to reset view to default
         function resetView() {
-            map.setView([ -90.3700, 38.7776], 13);
+            map.setView([38.7776, -90.3686], 13);
         }
         
         // Function to show fire station
         function showFireStation() {
-            map.setView([38.7776, -90.3700], 15);
+            map.setView([38.7776, -90.3686], 15);
             fireStationMarker.openPopup();
         }
         
         // Function to show city hall
         function showCityHall() {
-            map.setView([38.7768, -90.3705], 15);
+            map.setView([38.7769, -90.3701], 15);
             cityHallMarker.openPopup();
         }
         
@@ -196,12 +214,12 @@
             fillOpacity: 0.1
         }).addTo(map);
         
-        // Add some sample inspection locations with correct coordinates
+        // Add some sample inspection locations with corrected coordinates
         const inspectionLocations = [
-            {lat: 38.7850, lng: -90.3740, name: "ABC Manufacturing", status: "Compliant"},
-            {lat: 38.7750, lng: -90.3650, name: "XYZ Shopping Center", status: "Non-Compliant"},
-            {lat: 38.7780, lng: -90.3720, name: "Hazelwood High School", status: "Compliant"},
-            {lat: 38.7720, lng: -90.3680, name: "Medical Center", status: "Compliant"}
+            {lat: 38.7775, lng: -90.3685, name: "Hazelwood Fire Headquarters", status: "Compliant"},
+            {lat: 38.7769, lng: -90.3701, name: "Hazelwood City Hall", status: "Compliant"},
+            {lat: 38.7725, lng: -90.3650, name: "Hazelwood Community Center", status: "Non-Compliant"},
+            {lat: 38.7850, lng: -90.3740, name: "Hazelwood High School", status: "Compliant"}
         ];
         
         // Add markers for inspection locations
@@ -218,6 +236,19 @@
             const marker = L.marker([location.lat, location.lng], {icon: icon}).addTo(map);
             marker.bindPopup(`<b>${location.name}</b><br>Status: ${location.status}`);
         });
+        
+        // Add coordinate display when clicking on the map
+        map.on('click', function(e) {
+            document.getElementById('coordinates').innerHTML = 
+                "Lat: " + e.latlng.lat.toFixed(6) + "<br>Lng: " + e.latlng.lng.toFixed(6);
+        });
+        
+        // Log coordinates for debugging
+        console.log("Fire Station coordinates: [38.7776, -90.3686]");
+        console.log("Fire Station actual position: " + fireStationMarker.getLatLng());
+        
+        console.log("City Hall coordinates: [38.7769, -90.3701]");
+        console.log("City Hall actual position: " + cityHallMarker.getLatLng());
         
         // Ensure the map renders properly
         setTimeout(function() {
