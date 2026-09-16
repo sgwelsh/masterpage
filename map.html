@@ -135,10 +135,11 @@
         
         <div class="map-container">
             <div class="iframe-container">
-                <!-- GeoLibre iframe with parameters for Hazelwood, MO -->
+                <!-- Using r.geolibre.app which appears to be the specialized embedding URL -->
                 <iframe 
-                    src="https://web.geolibre.app/?view=38.787950,-90.374537,13"
+                    src="https://r.geolibre.app/?maponly=38.7714,-90.3710,13"
                     title="Hazelwood Fire District Map"
+                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                 ></iframe>
             </div>
             
@@ -165,13 +166,30 @@
         // Reset view to Hazelwood, MO
         function resetView() {
             const iframe = document.querySelector('iframe');
-            iframe.src = "https://web.geolibre.app/?view=38.787950,-90.374537,13";
+            iframe.src = "https://r.geolibre.app/?maponly=38.7714,-90.3710,13";
         }
         
         // Open GeoLibre in a new tab
         function openInNewTab() {
-            window.open("https://web.geolibre.app/?view=38.787950,-90.374537,13", "_blank");
+            window.open("https://r.geolibre.app/?maponly=38.7714,-90.3710,13", "_blank");
         }
+        
+        // Wait for iframe to load, then try to set view
+        window.onload = function() {
+            // Add a delay to ensure the iframe is fully loaded
+            setTimeout(function() {
+                try {
+                    const iframe = document.querySelector('iframe');
+                    iframe.contentWindow.postMessage({
+                        type: 'setView',
+                        center: [38.7714, -90.3710],
+                        zoom: 13
+                    }, '*');
+                } catch (e) {
+                    console.log('Could not set view via postMessage, using URL params instead');
+                }
+            }, 1000);
+        };
     </script>
 </body>
 </html>
