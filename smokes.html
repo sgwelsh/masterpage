@@ -149,7 +149,8 @@
         const githubCsvUrl = 'https://raw.githubusercontent.com/sgwelsh/masterpage/main/smokedetector.csv';
         
         document.addEventListener('DOMContentLoaded', function() {
-            loadCsvData(Smokes.csv);
+            // Fixed: Pass the actual URL instead of the undefined variable
+            loadCsvData(githubCsvUrl);
             
             // Setup search functionality
             document.getElementById('searchInput').addEventListener('keyup', filterTable);
