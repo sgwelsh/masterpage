@@ -145,11 +145,10 @@
     </div>
 
     <script>
-        // Replace with your GitHub CSV file URL
-        const githubCsvUrl = 'https://raw.githubusercontent.com/sgwelsh/masterpage/main/smokedetector.csv';
+        // Replace with your GitHub CSV file URL - updated to use Smokes.csv
+        const githubCsvUrl = 'https://raw.githubusercontent.com/sgwelsh/masterpage/main/Smokes.csv';
         
         document.addEventListener('DOMContentLoaded', function() {
-            // Fixed: Pass the actual URL instead of the undefined variable
             loadCsvData(githubCsvUrl);
             
             // Setup search functionality
