@@ -1,0 +1,25 @@
+{
+    "pageTitle": "Smoke Detector Inspection Records",
+    "pageHeader": "Smoke Detector Inspection Records",
+    "rowsPerPage": 10,
+    "columnWidths": ["150px", "200px", "120px", "120px", "100px"],
+    "columnFormats": [
+        null,
+        null,
+        { "type": "date" },
+        null,
+        null
+    ],
+    "tableStyles": {
+        "headerColor": "#2c3e50",
+        "headerTextColor": "#ffffff",
+        "headerFontSize": "14px",
+        "cellBackgroundColor": "#ffffff",
+        "cellTextColor": "#333333",
+        "cellFontSize": "13px",
+        "alternatingRowColors": ["#ffffff", "#f8f9fa"],
+        "borderColor": "#ddd",
+        "borderWidth": "1px"
+    },
+    "sortableColumns": [true, true, true, true, true, true]
+}
