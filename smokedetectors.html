@@ -1,725 +1,525 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Hazelwood Fire Department - Smoke Detector Installations</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <title id="page-title">Smoke Detector Records</title>
     <style>
-
+        /* Default styles */
         body {
-
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-
-            background-color: #f8f9fa;
-
+            font-family: Arial, sans-serif;
+            margin: 0;
             padding: 20px;
-
+            color: #333;
         }
-
-        .container {
-
-            max-width: 1200px;
-
-            margin: 0 auto;
-
-            background-color: white;
-
-            border-radius: 10px;
-
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-
-            padding: 25px;
-
+        
+        h1 {
+            margin-bottom: 20px;
         }
-
-        .header {
-
-            background-color: #003366;
-
-            color: white;
-
-            padding: 15px 20px;
-
-            border-radius: 8px 8px 0 0;
-
-            margin: -25px -25px 20px -25px;
-
-            text-align: center;
-
+        
+        .search-container {
+            margin-bottom: 15px;
         }
-
+        
+        .search-container input {
+            padding: 8px;
+            width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
         .table-container {
-
             overflow-x: auto;
-
-            margin-top: 20px;
-
         }
-
+        
         table {
-
-            border-collapse: collapse;
-
             width: 100%;
-
-            border: 1px solid #dee2e6;
-
+            border-collapse: collapse;
         }
-
-        th {
-
-            background-color: #f1f3f4;
-
-            color: #003366;
-
-            font-weight: 600;
-
+        
+        th, td {
+            padding: 12px;
             text-align: left;
-
-            padding: 12px 15px;
-
-            border-bottom: 2px solid #003366;
-
-            cursor: pointer;
-
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            font-weight: bold;
             position: relative;
-
         }
-
-        th:hover {
-
-            background-color: #e9ecef;
-
+        
+        th.sortable {
+            cursor: pointer;
         }
-
-        th.sort-icon {
-
-            position: absolute;
-
-            right: 8px;
-
-            top: 12px;
-
-            color: #003366;
-
-            font-size: 0.8em;
-
+        
+        th.sortable:hover {
+            background-color: #f5f5f5;
         }
-
-        th.sort-asc .sort-icon::after {
-
+        
+        th.sortable::after {
+            content: " ⇅";
+            opacity: 0.3;
+        }
+        
+        th.sorted-asc::after {
             content: " ↑";
-
+            opacity: 1;
         }
-
-        th.sort-desc .sort-icon::after {
-
+        
+        th.sorted-desc::after {
             content: " ↓";
-
+            opacity: 1;
         }
-
-        td {
-
-            padding: 12px 15px;
-
-            border-bottom: 1px solid #dee2e6;
-
+        
+        .pagination {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
         }
-
-        tr:hover {
-
-            background-color: #f8f9fa;
-
-        }
-
-        .status-badge {
-
+        
+        .pagination button {
+            margin-right: 10px;
             padding: 5px 10px;
-
-            border-radius: 15px;
-
-            font-size: 0.85rem;
-
-            font-weight: 500;
-
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            cursor: pointer;
         }
-
-        .status-completed {
-
-            background-color: #d4edda;
-
-            color: #155724;
-
+        
+        .pagination button:hover {
+            background-color: #e1e1e1;
         }
-
-        .status-pending {
-
-            background-color: #fff3cd;
-
-            color: #856404;
-
+        
+        .pagination button.active {
+            background-color: #337ab7;
+            color: white;
         }
-
-        .status-cancelled {
-
-            background-color: #f8d7da;
-
-            color: #721c24;
-
+        
+        .pagination button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
         }
-
-        .loading {
-
-            text-align: center;
-
-            padding: 30px;
-
+        
+        .config-message {
+            background-color: #e2f3ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
         }
-
-        .error {
-
-            color: #dc3545;
-
-            text-align: center;
-
-            padding: 20px;
-
-            background-color: #f8d7da;
-
-            border-radius: 5px;
-
+        
+        .config-error {
+            background-color: #ffe2e2;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
         }
-
+        
+        /* Will be populated by config.json */
     </style>
-
 </head>
-
 <body>
-
-    <div class="container">
-
-        <div class="header">
-
-            <h1>Hazelwood Fire Department</h1>
-
-            <h3>Smoke Detector Installation Records</h3>
-
-        </div>
-
-
-
-        <div class="row mt-4 justify-content-end">
-
-            <div class="col-md-6 text-end">
-
-                <button id="exportBtn" class="btn btn-primary">Export to CSV</button>
-
-            </div>
-
-        </div>
-
-
-
-        <div class="table-container">
-
-            <div id="loading" class="loading">
-
-                <div class="spinner-border text-primary" role="status">
-
-                    <span class="visually-hidden">Loading...</span>
-
-                </div>
-
-                <p class="mt-2">Loading smoke detector records...</p>
-
-            </div>
-
-            <div id="error" class="error d-none"></div>
-
-            <table id="dataTable" class="table d-none">
-
-                <thead id="tableHeader"></thead>
-
-                <tbody id="tableBody"></tbody>
-
-            </table>
-
-        </div>
-
+    <h1 id="page-header">Smoke Detector Records</h1>
+    <div id="config-message" class="config-message" style="display: none;"></div>
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Search table...">
+    </div>
+    <div class="table-container">
+        <table id="data-table">
+            <thead id="table-head">
+                <tr>
+                    <!-- Headers will be populated from CSV -->
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <!-- Data will be populated from CSV -->
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination" id="pagination">
+        <button id="prev-page" disabled>Previous</button>
+        <span id="page-info"></span>
+        <button id="next-page" disabled>Next</button>
+        <select id="rows-per-page">
+            <option value="5">5 rows</option>
+            <option value="10" selected>10 rows</option>
+            <option value="25">25 rows</option>
+            <option value="50">50 rows</option>
+            <option value="100">100 rows</option>
+        </select>
     </div>
 
-
-
     <script>
+        // Global variables
+        let csvData = [];
+        let filteredData = [];
+        let headers = [];
+        let currentPage = 1;
+        let rowsPerPage = 10;
+        let config = {};
+        let sortColumn = -1;
+        let sortDirection = 'asc';
 
-        // Replace with your GitHub CSV file URL - updated to use smokes.csv
-
-        const githubCsvUrl = 'smokes.csv';
-
-       
-
+        // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
-
-            loadCsvData(githubCsvUrl);
-
-           
-
-            // Setup export functionality
-
-            document.getElementById('exportBtn').addEventListener('click', exportToCsv);
-
+            loadConfig();
+            document.getElementById('rows-per-page').addEventListener('change', function() {
+                rowsPerPage = parseInt(this.value);
+                currentPage = 1;
+                renderTable();
+                updatePagination();
+            });
+            
+            document.getElementById('search-input').addEventListener('input', function() {
+                currentPage = 1;
+                filterData(this.value);
+            });
+            
+            document.getElementById('prev-page').addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                    updatePagination();
+                }
+            });
+            
+            document.getElementById('next-page').addEventListener('click', function() {
+                const maxPage = Math.ceil(filteredData.length / rowsPerPage);
+                if (currentPage < maxPage) {
+                    currentPage++;
+                    renderTable();
+                    updatePagination();
+                }
+            });
         });
 
-
-
-        async function loadCsvData(url) {
-
-            try {
-
-                const response = await fetch(url);
-
-               
-
-                if (!response.ok) {
-
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-
-                }
-
-               
-
-                const csvData = await response.text();
-
-                const records = parseCsv(csvData);
-
-               
-
-                displayData(records);
-
-               
-
-                // Hide loading, show table
-
-                document.getElementById('loading').classList.add('d-none');
-
-                document.getElementById('dataTable').classList.remove('d-none');
-
-               
-
-            } catch (error) {
-
-                console.error('Error loading CSV data:', error);
-
-                document.getElementById('loading').classList.add('d-none');
-
-                document.getElementById('error').textContent = `Error: ${error.message}. Please check the CSV file URL and ensure it's accessible.`;
-
-                document.getElementById('error').classList.remove('d-none');
-
-            }
-
-        }
-
-
-
-        function parseCsv(csvData) {
-
-            const lines = csvData.split('\n').filter(line => line.trim() !== '');
-
-            const headers = lines[0].split(',').map(header => header.trim());
-
-           
-
-            const records = [];
-
-           
-
-            for (let i = 1; i < lines.length; i++) {
-
-                const values = lines[i].split(',').map(value => value.trim());
-
-                const record = {};
-
-               
-
-                headers.forEach((header, index) => {
-
-                    record[header] = values[index] || '';
-
+        // Load configuration from config.json
+        function loadConfig() {
+            fetch('config.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Config file not found');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    config = data;
+                    applyConfig();
+                    loadCSV();
+                })
+                .catch(error => {
+                    // Show error message but continue with default config
+                    showConfigError(error.message);
+                    loadCSV();
                 });
-
-               
-
-                records.push(record);
-
-            }
-
-           
-
-            return records;
-
         }
 
+        // Apply configuration settings
+        function applyConfig() {
+            // Set page title and header
+            if (config.pageTitle) {
+                document.getElementById('page-title').textContent = config.pageTitle;
+            }
+            if (config.pageHeader) {
+                document.getElementById('page-header').textContent = config.pageHeader;
+            }
+            
+            // Apply table styles
+            const style = document.createElement('style');
+            let cssRules = '';
+            
+            if (config.tableStyles) {
+                const styles = config.tableStyles;
+                
+                // Header styles
+                if (styles.headerColor) {
+                    cssRules += `th { background-color: ${styles.headerColor} !important; }`;
+                }
+                if (styles.headerTextColor) {
+                    cssRules += `th { color: ${styles.headerTextColor} !important; }`;
+                }
+                if (styles.headerFontSize) {
+                    cssRules += `th { font-size: ${styles.headerFontSize} !important; }`;
+                }
+                
+                // Cell styles
+                if (styles.cellBackgroundColor) {
+                    cssRules += `td { background-color: ${styles.cellBackgroundColor} !important; }`;
+                }
+                if (styles.cellTextColor) {
+                    cssRules += `td { color: ${styles.cellTextColor} !important; }`;
+                }
+                if (styles.cellFontSize) {
+                    cssRules += `td { font-size: ${styles.cellFontSize} !important; }`;
+                }
+                
+                // Alternating row colors
+                if (styles.alternatingRowColors && styles.alternatingRowColors.length >= 2) {
+                    cssRules += `tr:nth-child(even) { background-color: ${styles.alternatingRowColors[1]} !important; }`;
+                    cssRules += `tr:nth-child(odd) { background-color: ${styles.alternatingRowColors[0]} !important; }`;
+                }
+                
+                // Border styles
+                if (styles.borderColor) {
+                    cssRules += `table, th, td { border-color: ${styles.borderColor} !important; }`;
+                }
+                if (styles.borderWidth) {
+                    cssRules += `table, th, td { border-width: ${styles.borderWidth} !important; }`;
+                }
+            }
+            
+            // Column widths
+            if (config.columnWidths) {
+                config.columnWidths.forEach((width, index) => {
+                    cssRules += `th:nth-child(${index + 1}), td:nth-child(${index + 1}) { width: ${width} !important; }`;
+                });
+            }
+            
+            style.textContent = cssRules;
+            document.head.appendChild(style);
+            
+            // Set rows per page
+            if (config.rowsPerPage) {
+                rowsPerPage = config.rowsPerPage;
+                document.getElementById('rows-per-page').value = rowsPerPage;
+            }
+            
+            // Show success message
+            showConfigMessage('Configuration loaded successfully');
+        }
 
+        // Show configuration message
+        function showConfigMessage(message) {
+            const configDiv = document.getElementById('config-message');
+            configDiv.textContent = message;
+            configDiv.className = 'config-message';
+            configDiv.style.display = 'block';
+            setTimeout(() => {
+                configDiv.style.display = 'none';
+            }, 3000);
+        }
 
-        // Global variable to store all records
+        // Show configuration error
+        function showConfigError(message) {
+            const configDiv = document.getElementById('config-message');
+            configDiv.textContent = 'Configuration error: ' + message + '. Using default settings.';
+            configDiv.className = 'config-error';
+            configDiv.style.display = 'block';
+        }
 
-        let allRecords = [];
+        // Load CSV data
+        function loadCSV() {
+            fetch('smokes.csv')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('CSV file not found');
+                    }
+                    return response.text();
+                })
+                .then(text => {
+                    parseCSV(text);
+                    filterData('');
+                })
+                .catch(error => {
+                    // Show error message in the table
+                    document.getElementById('table-body').innerHTML = `<tr><td colspan="100%">Error loading CSV file: ${error.message}</td></tr>`;
+                });
+        }
 
-
-
-        function displayData(records) {
-
-            // Store all records for sorting
-
-            allRecords = records;
-
-           
-
-            const tableHeader = document.getElementById('tableHeader');
-
-            const tableBody = document.getElementById('tableBody');
-
-           
-
-            // Clear existing content
-
-            tableHeader.innerHTML = '';
-
-            tableBody.innerHTML = '';
-
-           
-
-            if (records.length === 0) {
-
-                tableBody.innerHTML = `<tr><td colspan="100%" class="text-center">No records found</td></tr>`;
-
+        // Parse CSV text
+        function parseCSV(text) {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            
+            if (lines.length < 1) {
+                document.getElementById('table-body').innerHTML = '<tr><td colspan="100%">CSV file is empty</td></tr>';
                 return;
-
             }
-
-           
-
-            // Create table header with sort functionality
-
-            const headerRow = document.createElement('tr');
-
-            Object.keys(records[0]).forEach(key => {
-
-                const th = document.createElement('th');
-
-                th.textContent = formatHeader(key);
-
-                th.dataset.column = key;
-
-                th.innerHTML += `<span class="sort-icon"></span>`;
-
-               
-
-                // Add click event for sorting
-
-                th.addEventListener('click', () => sortTable(key, th));
-
-               
-
-                headerRow.appendChild(th);
-
-            });
-
-            tableHeader.appendChild(headerRow);
-
-           
-
-            // Create table rows
-
-            records.forEach(record => {
-
-                const row = document.createElement('tr');
-
-                Object.values(record).forEach(value => {
-
-                    const cell = document.createElement('td');
-
-                   
-
-                    // Special formatting for status fields
-
-                    if (value.toString().toLowerCase() === 'completed') {
-
-                        cell.innerHTML = `<span class="status-badge status-completed">${value}</span>`;
-
-                    } else if (value.toString().toLowerCase() === 'pending') {
-
-                        cell.innerHTML = `<span class="status-badge status-pending">${value}</span>`;
-
-                    } else if (value.toString().toLowerCase() === 'cancelled') {
-
-                        cell.innerHTML = `<span class="status-badge status-cancelled">${value}</span>`;
-
-                    } else {
-
-                        cell.textContent = value;
-
-                    }
-
-                   
-
-                    row.appendChild(cell);
-
-                });
-
-                tableBody.appendChild(row);
-
-            });
-
+            
+            // Parse headers
+            headers = parseCSVLine(lines[0]);
+            
+            // Parse data rows
+            csvData = [];
+            for (let i = 1; i < lines.length; i++) {
+                const row = parseCSVLine(lines[i]);
+                if (row.length > 0) {
+                    csvData.push(row);
+                }
+            }
+            
+            // Set initial filtered data
+            filteredData = csvData;
+            
+            // Create table headers
+            createTableHeaders();
         }
 
-
-
-        function sortTable(column, headerElement) {
-
-            // Determine sort direction
-
-            let sortDirection = 'asc';
-
-           
-
-            // Check current sort state
-
-            if (headerElement.classList.contains('sort-asc')) {
-
-                sortDirection = 'desc';
-
-            } else if (headerElement.classList.contains('sort-desc')) {
-
-                sortDirection = 'asc';
-
-            }
-
-           
-
-            // Remove sort classes from all headers
-
-            document.querySelectorAll('th').forEach(th => {
-
-                th.classList.remove('sort-asc', 'sort-desc');
-
-            });
-
-           
-
-            // Add appropriate sort class to clicked header
-
-            headerElement.classList.add(sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
-
-           
-
-            // Sort the records
-
-            const sortedRecords = [...allRecords].sort((a, b) => {
-
-                let valueA = a[column];
-
-                let valueB = b[column];
-
-               
-
-                // Handle status badges (strip HTML for comparison)
-
-                if (valueA && valueA.includes('status-badge')) {
-
-                    valueA = valueA.replace(/<[^>]*>/g, '');
-
-                }
-
-                if (valueB && valueB.includes('status-badge')) {
-
-                    valueB = valueB.replace(/<[^>]*>/g, '');
-
-                }
-
-               
-
-                // Try to parse as numbers if possible
-
-                if (!isNaN(parseFloat(valueA)) && !isNaN(parseFloat(valueB))) {
-
-                    return sortDirection === 'asc' ? 
-
-                        parseFloat(valueA) - parseFloat(valueB) : 
-
-                        parseFloat(valueB) - parseFloat(valueA);
-
-                }
-
-               
-
-                // Default to string comparison
-
-                if (sortDirection === 'asc') {
-
-                    return valueA.localeCompare(valueB);
-
+        // Parse a CSV line (handles commas in quoted strings)
+        function parseCSVLine(line) {
+            const result = [];
+            let currentValue = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"' && (i === 0 || line[i-1] === ',' || line[i+1] === ',' || i === line.length - 1)) {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(currentValue.trim());
+                    currentValue = '';
                 } else {
-
-                    return valueB.localeCompare(valueA);
-
+                    currentValue += char;
                 }
-
-            });
-
-           
-
-            // Re-render the table with sorted data
-
-            const tableBody = document.getElementById('tableBody');
-
-            tableBody.innerHTML = '';
-
-           
-
-            sortedRecords.forEach(record => {
-
-                const row = document.createElement('tr');
-
-                Object.keys(record).forEach(key => {
-
-                    const cell = document.createElement('td');
-
-                    const value = record[key];
-
-                   
-
-                    // Special formatting for status fields
-
-                    if (value.toString().toLowerCase() === 'completed') {
-
-                        cell.innerHTML = `<span class="status-badge status-completed">${value}</span>`;
-
-                    } else if (value.toString().toLowerCase() === 'pending') {
-
-                        cell.innerHTML = `<span class="status-badge status-pending">${value}</span>`;
-
-                    } else if (value.toString().toLowerCase() === 'cancelled') {
-
-                        cell.innerHTML = `<span class="status-badge status-cancelled">${value}</span>`;
-
-                    } else {
-
-                        cell.textContent = value;
-
-                    }
-
-                   
-
-                    row.appendChild(cell);
-
-                });
-
-                tableBody.appendChild(row);
-
-            });
-
-        }
-
-
-
-        function formatHeader(header) {
-
-            // Convert header like "resident_name" to "Resident Name"
-
-            return header.replace(/\_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
-
-        }
-
-
-
-        function exportToCsv() {
-
-            const table = document.getElementById('dataTable');
-
-            let csv = [];
-
-           
-
-            // Get headers
-
-            const headers = [];
-
-            const headerCells = table.querySelectorAll('th');
-
-            headerCells.forEach(cell => {
-
-                // Remove sort icon from header text for export
-
-                const headerText = cell.textContent.replace(/[↑↓]/g, '').trim();
-
-                headers.push(headerText);
-
-            });
-
-            csv.push(headers.join(','));
-
-           
-
-            // Get rows
-
-            const rows = table.querySelectorAll('tr');
-
-            for (let i = 1; i < rows.length; i++) {
-
-                const row = [];
-
-                const cells = rows[i].querySelectorAll('td');
-
-               
-
-                cells.forEach(cell => {
-
-                    // Remove HTML tags from status badges
-
-                    row.push(cell.textContent.replace(/["',\n]/g, ''));
-
-                });
-
-               
-
-                csv.push(row.join(','));
-
             }
-
-           
-
-            // Download CSV file
-
-            const csvContent = csv.join('\n');
-
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-
-            const url = URL.createObjectURL(blob);
-
-           
-
-            const downloadLink = document.createElement('a');
-
-            downloadLink.setAttribute('href', url);
-
-            downloadLink.setAttribute('download', 'smoke_detector_records.csv');
-
-            downloadLink.click();
-
+            
+            // Add the last value
+            result.push(currentValue.trim());
+            
+            return result;
         }
 
+        // Create table headers
+        function createTableHeaders() {
+            const headerRow = document.getElementById('table-head').querySelector('tr');
+            headerRow.innerHTML = '';
+            
+            headers.forEach((header, index) => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                
+                // Make sortable if enabled in config
+                if (!config.sortableColumns || config.sortableColumns[index] !== false) {
+                    th.classList.add('sortable');
+                    th.addEventListener('click', () => sortByColumn(index));
+                }
+                
+                headerRow.appendChild(th);
+            });
+        }
+
+        // Sort by column
+        function sortByColumn(columnIndex) {
+            // Update sort direction if clicking the same column
+            if (sortColumn === columnIndex) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = columnIndex;
+                sortDirection = 'asc';
+            }
+            
+            // Update header classes
+            document.querySelectorAll('th').forEach((th, index) => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
+                if (index === sortColumn) {
+                    th.classList.add(sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
+                }
+            });
+            
+            // Sort the data
+            filteredData.sort((a, b) => {
+                const valueA = a[columnIndex].toLowerCase();
+                const valueB = b[columnIndex].toLowerCase();
+                
+                if (valueA < valueB) {
+                    return sortDirection === 'asc' ? -1 : 1;
+                } else if (valueA > valueB) {
+                    return sortDirection === 'asc' ? 1 : -1;
+                } else {
+                    return 0;
+                }
+            });
+            
+            // Reset to first page and render
+            currentPage = 1;
+            renderTable();
+            updatePagination();
+        }
+
+        // Filter data based on search input
+        function filterData(searchTerm) {
+            if (searchTerm === '') {
+                filteredData = [...csvData];
+            } else {
+                const term = searchTerm.toLowerCase();
+                filteredData = csvData.filter(row => {
+                    return row.some(cell => cell.toLowerCase().includes(term));
+                });
+            }
+            
+            renderTable();
+            updatePagination();
+        }
+
+        // Render table
+        function renderTable() {
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = '';
+            
+            // Calculate the start and end index for the current page
+            const startIndex = (currentPage - 1) * rowsPerPage;
+            const endIndex = Math.min(startIndex + rowsPerPage, filteredData.length);
+            
+            // Add rows for the current page
+            for (let i = startIndex; i < endIndex; i++) {
+                const row = document.createElement('tr');
+                
+                filteredData[i].forEach((cell, index) => {
+                    const td = document.createElement('td');
+                    
+                    // Apply column-specific formatting if configured
+                    if (config.columnFormats && config.columnFormats[index]) {
+                        const format = config.columnFormats[index];
+                        
+                        // URL formatting
+                        if (format.type === 'url' && cell) {
+                            const link = document.createElement('a');
+                            link.href = cell;
+                            link.textContent = cell;
+                            link.target = '_blank';
+                            td.appendChild(link);
+                        } 
+                        // Date formatting
+                        else if (format.type === 'date' && cell) {
+                            const date = new Date(cell);
+                            if (!isNaN(date.getTime())) {
+                                td.textContent = date.toLocaleDateString();
+                            } else {
+                                td.textContent = cell;
+                            }
+                        } 
+                        // Default: just text
+                        else {
+                            td.textContent = cell;
+                        }
+                    } 
+                    // No specific formatting configured
+                    else {
+                        td.textContent = cell;
+                    }
+                    
+                    row.appendChild(td);
+                });
+                
+                tableBody.appendChild(row);
+            }
+            
+            // If no data is found
+            if (filteredData.length === 0) {
+                const row = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = headers.length;
+                td.textContent = 'No matching data found';
+                row.appendChild(td);
+                tableBody.appendChild(row);
+            }
+        }
+
+        // Update pagination controls
+        function updatePagination() {
+            const maxPage = Math.ceil(filteredData.length / rowsPerPage);
+            document.getElementById('prev-page').disabled = currentPage <= 1;
+            document.getElementById('next-page').disabled = currentPage >= maxPage;
+            document.getElementById('page-info').textContent = `Page ${currentPage} of ${maxPage || 1}`;
+        }
     </script>
-
 </body>
-
 </html>
