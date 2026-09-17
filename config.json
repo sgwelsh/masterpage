@@ -12,7 +12,7 @@
     ],
     "tableStyles": {
         "headerColor": "#F62817",
-        "headerTextColor": "#ffffff",
+        "headerTextColor": "#000000",
         "headerFontSize": "14px",
         "cellBackgroundColor": "#ffffff",
         "cellTextColor": "#333333",
