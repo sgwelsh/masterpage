@@ -51,9 +51,6 @@
         tr:hover {
             background-color: #f8f9fa;
         }
-        .search-box {
-            margin-bottom: 20px;
-        }
         .status-badge {
             padding: 5px 10px;
             border-radius: 15px;
@@ -92,13 +89,7 @@
             <h3>Smoke Detector Installation Records</h3>
         </div>
 
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <div class="input-group search-box">
-                    <span class="input-group-text">🔍</span>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Search records...">
-                </div>
-            </div>
+        <div class="row mt-4 justify-content-end">
             <div class="col-md-6 text-end">
                 <button id="exportBtn" class="btn btn-primary">Export to CSV</button>
             </div>
@@ -125,9 +116,6 @@
         
         document.addEventListener('DOMContentLoaded', function() {
             loadCsvData(githubCsvUrl);
-            
-            // Setup search functionality
-            document.getElementById('searchInput').addEventListener('keyup', filterTable);
             
             // Setup export functionality
             document.getElementById('exportBtn').addEventListener('click', exportToCsv);
@@ -226,28 +214,6 @@
         function formatHeader(header) {
             // Convert header like "resident_name" to "Resident Name"
             return header.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
-        }
-
-        function filterTable() {
-            const searchInput = document.getElementById('searchInput').value.toLowerCase();
-            const table = document.getElementById('dataTable');
-            const rows = table.getElementsByTagName('tr');
-            
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                const cells = row.getElementsByTagName('td');
-                let found = false;
-                
-                for (let j = 0; j < cells.length; j++) {
-                    const cellText = cells[j].textContent.toLowerCase();
-                    if (cellText.includes(searchInput)) {
-                        found = true;
-                        break;
-                    }
-                }
-                
-                row.style.display = found ? '' : 'none';
-            }
         }
 
         function exportToCsv() {
