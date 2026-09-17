@@ -1,257 +1,725 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Hazelwood Fire Department - Smoke Detector Installations</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
+
         body {
+
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
             background-color: #f8f9fa;
+
             padding: 20px;
+
         }
+
         .container {
+
             max-width: 1200px;
+
             margin: 0 auto;
+
             background-color: white;
+
             border-radius: 10px;
+
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
+
             padding: 25px;
+
         }
+
         .header {
+
             background-color: #003366;
+
             color: white;
+
             padding: 15px 20px;
+
             border-radius: 8px 8px 0 0;
+
             margin: -25px -25px 20px -25px;
+
             text-align: center;
+
         }
+
         .table-container {
+
             overflow-x: auto;
+
             margin-top: 20px;
+
         }
+
         table {
+
             border-collapse: collapse;
+
             width: 100%;
+
             border: 1px solid #dee2e6;
+
         }
+
         th {
+
             background-color: #f1f3f4;
+
             color: #003366;
+
             font-weight: 600;
+
             text-align: left;
+
             padding: 12px 15px;
+
             border-bottom: 2px solid #003366;
+
+            cursor: pointer;
+
+            position: relative;
+
         }
+
+        th:hover {
+
+            background-color: #e9ecef;
+
+        }
+
+        th.sort-icon {
+
+            position: absolute;
+
+            right: 8px;
+
+            top: 12px;
+
+            color: #003366;
+
+            font-size: 0.8em;
+
+        }
+
+        th.sort-asc .sort-icon::after {
+
+            content: " ↑";
+
+        }
+
+        th.sort-desc .sort-icon::after {
+
+            content: " ↓";
+
+        }
+
         td {
+
             padding: 12px 15px;
+
             border-bottom: 1px solid #dee2e6;
+
         }
+
         tr:hover {
+
             background-color: #f8f9fa;
+
         }
+
         .status-badge {
+
             padding: 5px 10px;
+
             border-radius: 15px;
+
             font-size: 0.85rem;
+
             font-weight: 500;
+
         }
+
         .status-completed {
+
             background-color: #d4edda;
+
             color: #155724;
+
         }
+
         .status-pending {
+
             background-color: #fff3cd;
+
             color: #856404;
+
         }
+
         .status-cancelled {
+
             background-color: #f8d7da;
+
             color: #721c24;
+
         }
+
         .loading {
+
             text-align: center;
+
             padding: 30px;
+
         }
+
         .error {
+
             color: #dc3545;
+
             text-align: center;
+
             padding: 20px;
+
             background-color: #f8d7da;
+
             border-radius: 5px;
+
         }
+
     </style>
+
 </head>
+
 <body>
+
     <div class="container">
+
         <div class="header">
+
             <h1>Hazelwood Fire Department</h1>
+
             <h3>Smoke Detector Installation Records</h3>
+
         </div>
+
+
 
         <div class="row mt-4 justify-content-end">
+
             <div class="col-md-6 text-end">
+
                 <button id="exportBtn" class="btn btn-primary">Export to CSV</button>
+
             </div>
+
         </div>
+
+
 
         <div class="table-container">
+
             <div id="loading" class="loading">
+
                 <div class="spinner-border text-primary" role="status">
+
                     <span class="visually-hidden">Loading...</span>
+
                 </div>
+
                 <p class="mt-2">Loading smoke detector records...</p>
+
             </div>
+
             <div id="error" class="error d-none"></div>
+
             <table id="dataTable" class="table d-none">
+
                 <thead id="tableHeader"></thead>
+
                 <tbody id="tableBody"></tbody>
+
             </table>
+
         </div>
+
     </div>
 
+
+
     <script>
+
         // Replace with your GitHub CSV file URL - updated to use smokes.csv
+
         const githubCsvUrl = 'smokes.csv';
-        
+
+       
+
         document.addEventListener('DOMContentLoaded', function() {
+
             loadCsvData(githubCsvUrl);
-            
+
+           
+
             // Setup export functionality
+
             document.getElementById('exportBtn').addEventListener('click', exportToCsv);
+
         });
 
+
+
         async function loadCsvData(url) {
+
             try {
+
                 const response = await fetch(url);
-                
+
+               
+
                 if (!response.ok) {
+
                     throw new Error(`HTTP error! Status: ${response.status}`);
+
                 }
-                
+
+               
+
                 const csvData = await response.text();
+
                 const records = parseCsv(csvData);
-                
+
+               
+
                 displayData(records);
-                
+
+               
+
                 // Hide loading, show table
+
                 document.getElementById('loading').classList.add('d-none');
+
                 document.getElementById('dataTable').classList.remove('d-none');
-                
+
+               
+
             } catch (error) {
+
                 console.error('Error loading CSV data:', error);
+
                 document.getElementById('loading').classList.add('d-none');
+
                 document.getElementById('error').textContent = `Error: ${error.message}. Please check the CSV file URL and ensure it's accessible.`;
+
                 document.getElementById('error').classList.remove('d-none');
+
             }
+
         }
+
+
 
         function parseCsv(csvData) {
+
             const lines = csvData.split('\n').filter(line => line.trim() !== '');
+
             const headers = lines[0].split(',').map(header => header.trim());
-            
+
+           
+
             const records = [];
-            
+
+           
+
             for (let i = 1; i < lines.length; i++) {
+
                 const values = lines[i].split(',').map(value => value.trim());
+
                 const record = {};
-                
+
+               
+
                 headers.forEach((header, index) => {
+
                     record[header] = values[index] || '';
+
                 });
-                
+
+               
+
                 records.push(record);
+
             }
-            
+
+           
+
             return records;
+
         }
+
+
+
+        // Global variable to store all records
+
+        let allRecords = [];
+
+
 
         function displayData(records) {
+
+            // Store all records for sorting
+
+            allRecords = records;
+
+           
+
             const tableHeader = document.getElementById('tableHeader');
+
             const tableBody = document.getElementById('tableBody');
-            
+
+           
+
             // Clear existing content
+
             tableHeader.innerHTML = '';
+
             tableBody.innerHTML = '';
-            
+
+           
+
             if (records.length === 0) {
+
                 tableBody.innerHTML = `<tr><td colspan="100%" class="text-center">No records found</td></tr>`;
+
                 return;
+
             }
-            
-            // Create table header
+
+           
+
+            // Create table header with sort functionality
+
             const headerRow = document.createElement('tr');
+
             Object.keys(records[0]).forEach(key => {
+
                 const th = document.createElement('th');
+
                 th.textContent = formatHeader(key);
+
+                th.dataset.column = key;
+
+                th.innerHTML += `<span class="sort-icon"></span>`;
+
+               
+
+                // Add click event for sorting
+
+                th.addEventListener('click', () => sortTable(key, th));
+
+               
+
                 headerRow.appendChild(th);
+
             });
+
             tableHeader.appendChild(headerRow);
-            
+
+           
+
             // Create table rows
+
             records.forEach(record => {
+
                 const row = document.createElement('tr');
+
                 Object.values(record).forEach(value => {
+
                     const cell = document.createElement('td');
-                    
+
+                   
+
                     // Special formatting for status fields
+
                     if (value.toString().toLowerCase() === 'completed') {
+
                         cell.innerHTML = `<span class="status-badge status-completed">${value}</span>`;
+
                     } else if (value.toString().toLowerCase() === 'pending') {
+
                         cell.innerHTML = `<span class="status-badge status-pending">${value}</span>`;
+
                     } else if (value.toString().toLowerCase() === 'cancelled') {
+
                         cell.innerHTML = `<span class="status-badge status-cancelled">${value}</span>`;
+
                     } else {
+
                         cell.textContent = value;
+
                     }
-                    
+
+                   
+
                     row.appendChild(cell);
+
                 });
+
                 tableBody.appendChild(row);
+
             });
+
         }
+
+
+
+        function sortTable(column, headerElement) {
+
+            // Determine sort direction
+
+            let sortDirection = 'asc';
+
+           
+
+            // Check current sort state
+
+            if (headerElement.classList.contains('sort-asc')) {
+
+                sortDirection = 'desc';
+
+            } else if (headerElement.classList.contains('sort-desc')) {
+
+                sortDirection = 'asc';
+
+            }
+
+           
+
+            // Remove sort classes from all headers
+
+            document.querySelectorAll('th').forEach(th => {
+
+                th.classList.remove('sort-asc', 'sort-desc');
+
+            });
+
+           
+
+            // Add appropriate sort class to clicked header
+
+            headerElement.classList.add(sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+
+           
+
+            // Sort the records
+
+            const sortedRecords = [...allRecords].sort((a, b) => {
+
+                let valueA = a[column];
+
+                let valueB = b[column];
+
+               
+
+                // Handle status badges (strip HTML for comparison)
+
+                if (valueA && valueA.includes('status-badge')) {
+
+                    valueA = valueA.replace(/<[^>]*>/g, '');
+
+                }
+
+                if (valueB && valueB.includes('status-badge')) {
+
+                    valueB = valueB.replace(/<[^>]*>/g, '');
+
+                }
+
+               
+
+                // Try to parse as numbers if possible
+
+                if (!isNaN(parseFloat(valueA)) && !isNaN(parseFloat(valueB))) {
+
+                    return sortDirection === 'asc' ? 
+
+                        parseFloat(valueA) - parseFloat(valueB) : 
+
+                        parseFloat(valueB) - parseFloat(valueA);
+
+                }
+
+               
+
+                // Default to string comparison
+
+                if (sortDirection === 'asc') {
+
+                    return valueA.localeCompare(valueB);
+
+                } else {
+
+                    return valueB.localeCompare(valueA);
+
+                }
+
+            });
+
+           
+
+            // Re-render the table with sorted data
+
+            const tableBody = document.getElementById('tableBody');
+
+            tableBody.innerHTML = '';
+
+           
+
+            sortedRecords.forEach(record => {
+
+                const row = document.createElement('tr');
+
+                Object.keys(record).forEach(key => {
+
+                    const cell = document.createElement('td');
+
+                    const value = record[key];
+
+                   
+
+                    // Special formatting for status fields
+
+                    if (value.toString().toLowerCase() === 'completed') {
+
+                        cell.innerHTML = `<span class="status-badge status-completed">${value}</span>`;
+
+                    } else if (value.toString().toLowerCase() === 'pending') {
+
+                        cell.innerHTML = `<span class="status-badge status-pending">${value}</span>`;
+
+                    } else if (value.toString().toLowerCase() === 'cancelled') {
+
+                        cell.innerHTML = `<span class="status-badge status-cancelled">${value}</span>`;
+
+                    } else {
+
+                        cell.textContent = value;
+
+                    }
+
+                   
+
+                    row.appendChild(cell);
+
+                });
+
+                tableBody.appendChild(row);
+
+            });
+
+        }
+
+
 
         function formatHeader(header) {
+
             // Convert header like "resident_name" to "Resident Name"
-            return header.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+
+            return header.replace(/\_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+
         }
 
+
+
         function exportToCsv() {
+
             const table = document.getElementById('dataTable');
+
             let csv = [];
-            
+
+           
+
             // Get headers
+
             const headers = [];
+
             const headerCells = table.querySelectorAll('th');
+
             headerCells.forEach(cell => {
-                headers.push(cell.textContent);
+
+                // Remove sort icon from header text for export
+
+                const headerText = cell.textContent.replace(/[↑↓]/g, '').trim();
+
+                headers.push(headerText);
+
             });
+
             csv.push(headers.join(','));
-            
+
+           
+
             // Get rows
+
             const rows = table.querySelectorAll('tr');
+
             for (let i = 1; i < rows.length; i++) {
+
                 const row = [];
+
                 const cells = rows[i].querySelectorAll('td');
-                
+
+               
+
                 cells.forEach(cell => {
+
                     // Remove HTML tags from status badges
+
                     row.push(cell.textContent.replace(/["',\n]/g, ''));
+
                 });
-                
+
+               
+
                 csv.push(row.join(','));
+
             }
-            
+
+           
+
             // Download CSV file
+
             const csvContent = csv.join('\n');
+
             const blob = new Blob([csvContent], { type: 'text/csv' });
+
             const url = URL.createObjectURL(blob);
-            
+
+           
+
             const downloadLink = document.createElement('a');
+
             downloadLink.setAttribute('href', url);
+
             downloadLink.setAttribute('download', 'smoke_detector_records.csv');
+
             downloadLink.click();
+
         }
+
     </script>
+
 </body>
+
 </html>
