@@ -2,7 +2,7 @@
     "pageTitle": "Smoke Detector Inspection Records",
     "pageHeader": "Smoke Detector Inspection Records",
     "rowsPerPage": 10,
-    "columnWidths": ["150px", "200px", "120px", "120px", "100px"],
+    "columnWidths": ["auto", "auto", "auto", "auto", "auto"],
     "columnFormats": [
         null,
         null,
